@@ -67,9 +67,9 @@ local FarmMethodDropdown = AutoFarmSection:AddDropdown("FarmMethodDropdown", {
 
 local TweenSpeedSlider = AutoFarmSection:AddSlider("TweenSpeedSlider", {
     Title = "Tween Speed",
-    Default = 50,
-    Min = 0,
-    Max = 100,
+    Default = 30,
+    Min = 1,
+    Max = 200,
     Rounding = 1, Icon = "slider",
     Callback = function(Value)
         print("Tween Speed changed:", Value)
@@ -78,8 +78,8 @@ local TweenSpeedSlider = AutoFarmSection:AddSlider("TweenSpeedSlider", {
 
 local TpspeedSlider = AutoFarmSection:AddSlider("TpspeedSlider", {
     Title = "Tp speed",
-    Default = 50,
-    Min = 0,
+    Default = 80,
+    Min = 1,
     Max = 100,
     Rounding = 1, Icon = "slider",
     Callback = function(Value)
@@ -91,7 +91,23 @@ local AutoFarmToggle = AutoFarmSection:AddToggle("AutoFarmToggle", {
     Title = "Auto Farm",
     Default = false, Icon = "toggle-right",
     Callback = function(Value)
-        print("Auto Farm changed:", Value)
+        if Value then
+            local selectedNames = nil
+            local selected = Options.selectenemiesDropdown.Value
+            if selected and selected ~= "" then
+                selectedNames = { [selected] = true }
+            end
+
+            EnemiesFunctions.startAutoFarm({
+                selectedNames = selectedNames,
+                priority      = Options.PrioridadDropdown.Value,
+                method        = Options.FarmMethodDropdown.Value,
+                tweenSpeed    = Options.TweenSpeedSlider.Value,
+                tpSpeed       = Options.TpspeedSlider.Value,
+            })
+        else
+            EnemiesFunctions.stopAutoFarm()
+        end
     end
 })
 
