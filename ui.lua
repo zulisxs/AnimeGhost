@@ -38,7 +38,9 @@ local selectenemiesDropdown = AutoFarmSection:AddDropdown("selectenemiesDropdown
 AutoFarmSection:AddButton({
     Title = "Reset enemies", Icon = "sparkles",
     Callback = function()
-        print("Reset enemies clicked")
+        local enemies = searchEnemies()
+        selectenemiesDropdown:SetValues(enemies)
+        print("Enemies refreshed:", #enemies, "found")
     end
 })
 
