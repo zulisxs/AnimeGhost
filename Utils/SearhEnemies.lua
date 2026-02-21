@@ -125,37 +125,68 @@ end
 -- MOVE METHODS
 -- =====================
 
-local function moveByTP(targetPosition)
-    local player = game.Players.LocalPlayer.Character
-    if not player then return end
-    local humanoid = player:FindFirstChildOfClass("Humanoid")
-    local hrp = player:FindFirstChild("HumanoidRootPart")
-    if not humanoid or not hrp then return end
-    hrp.CFrame = CFrame.new(targetPosition + Vector3.new(0, 3, 0))
-    humanoid:MoveTo(targetPosition)
-end
-
-local function moveByTween(targetPosition, speed, onComplete)
+-- TP Incremental: divide la distancia en pasos para no activar anticheat
+local function moveByTP(targetPosition, speed)
     local player = game.Players.LocalPlayer.Character
     if not player then return end
     local hrp = player:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
-    local distance = (hrp.Position - targetPosition).Magnitude
-    -- speed va de 0 a 100, convertimos a tiempo real (speed 100 = muy rapido)
-    local duration = distance / (speed * 2 + 1)
+    local startPos = hrp.Position
+    local distance = (startPos - targetPosition).Magnitude
 
-    local TweenService = game:GetService("TweenService")
-    local tween = TweenService:Create(hrp, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
-        CFrame = CFrame.new(targetPosition + Vector3.new(0, 3, 0))
-    })
-    tween:Play()
-    tween.Completed:Connect(function()
-        if onComplete then onComplete() end
-    end)
-    return tween
+    -- Calcular tamaño de cada paso segun velocidad (speed 1-100)
+    -- speed 100 = pasos de 50 studs, speed 1 = pasos de 5 studs
+    local stepSize = 5 + (speed / 100) * 45
+
+    -- Si la distancia es pequeña, tp directo
+    if distance <= stepSize then
+        hrp.CFrame = CFrame.new(targetPosition + Vector3.new(0, 3, 0))
+        return
+    end
+
+    -- Dividir en pasos
+    local steps = math.ceil(distance / stepSize)
+    for i = 1, steps do
+        if not hrp or not hrp.Parent then break end
+        local alpha = i / steps
+        local stepPos = startPos:Lerp(targetPosition, alpha)
+        hrp.CFrame = CFrame.new(stepPos + Vector3.new(0, 3, 0))
+        task.wait(0.05) -- pequeña pausa entre pasos
+    end
 end
 
+-- Tween usando Humanoid:MoveTo (mas nativo, menos detectable)
+local function moveByTween(targetPosition, speed, onComplete)
+    local player = game.Players.LocalPlayer.Character
+    if not player then return end
+    local humanoid = player:FindFirstChildOfClass("Humanoid")
+    local hrp = player:FindFirstChild("HumanoidRootPart")
+    if not humanoid or not hrp then return end
+
+    -- Aumentar walkspeed temporalmente segun slider
+    local originalSpeed = humanoid.WalkSpeed
+    humanoid.WalkSpeed = speed * 2 -- speed 1-100 -> walkspeed 2-200
+
+    humanoid:MoveTo(targetPosition)
+
+    -- Detectar cuando llega
+    local connection
+    connection = humanoid.MoveToFinished:Connect(function()
+        connection:Disconnect()
+        humanoid.WalkSpeed = originalSpeed
+        if onComplete then onComplete() end
+    end)
+
+    -- Timeout por si MoveTo falla
+    task.delay(15, function()
+        if connection then
+            connection:Disconnect()
+            humanoid.WalkSpeed = originalSpeed
+            if onComplete then onComplete() end
+        end
+    end)
+end
 -- =====================
 -- AUTO FARM LOOP
 -- =====================
