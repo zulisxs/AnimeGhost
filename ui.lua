@@ -29,7 +29,7 @@ local selectenemiesDropdown = AutoFarmSection:AddDropdown("selectenemiesDropdown
     Title = "select enemies", Description = "Select option",
     Values = { "" },
     Default = "",
-    Multi = false,
+    Multi = true,
     Search = true, Icon = "list",
     Callback = function(Value)
         print("select enemies changed:", Value)
@@ -46,7 +46,7 @@ AutoFarmSection:AddButton({
 local PrioridadDropdown = AutoFarmSection:AddDropdown("PrioridadDropdown", {
     Title = "priority",
     Values = { "Low hp", "High Hp", "Near" },
-    Default = "",
+    Default = "High Hp",
     Multi = false,
     Search = true, Icon = "list",
     Callback = function(Value)
