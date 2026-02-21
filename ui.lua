@@ -92,11 +92,28 @@ local AutoFarmToggle = AutoFarmSection:AddToggle("AutoFarmToggle", {
     Default = false, Icon = "toggle-right",
     Callback = function(Value)
         if Value then
-            local selectedNames = nil
+            -- Con Multi = true, el value ya es un diccionario { ["nombre"] = true }
             local selected = Options.selectenemiesDropdown.Value
-            if selected and selected ~= "" then
-                selectedNames = { [selected] = true }
+            local selectedNames = nil
+
+            -- Verificar si hay algo seleccionado
+            local hasSelection = false
+            for _ in pairs(selected) do
+                hasSelection = true
+                break
             end
+
+            if hasSelection then
+                selectedNames = selected -- ya viene en el formato correcto
+            end
+            -- si selectedNames sigue nil = mata todos los enemigos sin filtro
+
+            print("Starting AutoFarm...")
+            print("Priority:", Options.PrioridadDropdown.Value)
+            print("Method:", Options.FarmMethodDropdown.Value)
+            print("TweenSpeed:", Options.TweenSpeedSlider.Value)
+            print("TpSpeed:", Options.TpspeedSlider.Value)
+            print("SelectedNames:", selectedNames)
 
             EnemiesFunctions.startAutoFarm({
                 selectedNames = selectedNames,
@@ -106,6 +123,7 @@ local AutoFarmToggle = AutoFarmSection:AddToggle("AutoFarmToggle", {
                 tpSpeed       = Options.TpspeedSlider.Value,
             })
         else
+            print("Stopping AutoFarm...")
             EnemiesFunctions.stopAutoFarm()
         end
     end
