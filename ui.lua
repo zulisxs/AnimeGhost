@@ -1,4 +1,5 @@
 local Fluent, SaveManager, InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/discoart/FluentPlus/refs/heads/main/Beta.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/zulisxs/AnimeGhost/refs/heads/main/Utils/SearhEnemies.lua"))()
 
 local Window = Fluent:CreateWindow({
     Title = "zUlisxs Hub",
