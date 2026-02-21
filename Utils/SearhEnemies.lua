@@ -24,3 +24,5 @@ local function searchEnemies()
 
     return enemyNames
 end
+
+return searchEnemies
