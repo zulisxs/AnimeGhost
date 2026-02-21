@@ -29,12 +29,18 @@ local function getEnemyName(model)
     return title.Text
 end
 
-local function isEnemyAlive(model)
-    local billboard = model:FindFirstChild("EnemyBillboard")
-    if not billboard then return false end
-    local amount = billboard:FindFirstChild("Amount")
-    local title = billboard:FindFirstChild("Title")
-    return amount ~= nil and title ~= nil
+local function isEnemyAlive(enemy)
+    -- Verificar que el modelo sigue existiendo en _ENEMIES.Client
+    local clientFolder = workspace:FindFirstChild("_ENEMIES") and 
+                         workspace._ENEMIES:FindFirstChild("Client")
+    if not clientFolder then return false end
+    
+    -- Si el modelo ya no es hijo de Client, esta muerto
+    if enemy.Parent ~= clientFolder then return false end
+    
+    -- Verificar que aun tiene EnemyBillboard
+    local billboard = enemy:FindFirstChild("EnemyBillboard")
+    return billboard ~= nil
 end
 
 local function getEnemyPosition(model)
@@ -196,44 +202,37 @@ local function startAutoFarm(options)
                     local pos = getEnemyPosition(enemy)
                     if not pos then continue end
 
+                    -- Moverse al enemigo UNA sola vez
                     if options.method == "Tp" then
-                        -- Loop de TP: sigue teletransportandose al enemigo hasta que muera
-                        while autoFarmRunning and isEnemyAlive(enemy) do
-                            local currentPos = getEnemyPosition(enemy)
-                            if not currentPos then break end
-                            moveByTP(currentPos)
-                            local delay = 1 - (options.tpSpeed / 100)
-                            task.wait(math.max(delay, 0.05))
-                        end
+                        moveByTP(pos)
 
                     elseif options.method == "Tween" then
-                        -- Loop de Tween: sigue al enemigo con tween hasta que muera
-                        while autoFarmRunning and isEnemyAlive(enemy) do
-                            local currentPos = getEnemyPosition(enemy)
-                            if not currentPos then break end
+                        local arrived = false
+                        currentTween = moveByTween(pos, options.tweenSpeed, function()
+                            arrived = true
+                        end)
 
-                            local arrived = false
-                            currentTween = moveByTween(currentPos, options.tweenSpeed, function()
-                                arrived = true
-                            end)
-
-                            -- Esperar llegada o muerte
-                            while not arrived and autoFarmRunning do
-                                if not isEnemyAlive(enemy) then
-                                    if currentTween then currentTween:Cancel() end
-                                    break
-                                end
-                                task.wait(0.1)
+                        -- Esperar a llegar
+                        while not arrived and autoFarmRunning do
+                            if not isEnemyAlive(enemy) then
+                                if currentTween then currentTween:Cancel() end
+                                break
                             end
-                            currentTween = nil
-
-                            if isEnemyAlive(enemy) then
-                                task.wait(0.1)
-                            end
+                            task.wait(0.1)
                         end
+                        currentTween = nil
                     end
 
-                    print("Enemy killed, moving to next...")
+                    -- Esperar a que el enemigo muera
+                    print("Waiting for enemy to die...")
+                    local timeout = 30
+                    local elapsed = 0
+                    while autoFarmRunning and isEnemyAlive(enemy) and elapsed < timeout do
+                        task.wait(0.1)
+                        elapsed += 0.1
+                    end
+
+                    print("Enemy dead, next...")
                     task.wait(0.2)
                 end
             end
@@ -242,7 +241,6 @@ local function startAutoFarm(options)
         end
     end)
 end
-
 -- =====================
 -- RETURN
 -- =====================
