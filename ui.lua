@@ -1,5 +1,5 @@
 local Fluent, SaveManager, InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/discoart/FluentPlus/refs/heads/main/Beta.lua"))()
-local searchEnemies = loadstring(game:HttpGet("https://raw.githubusercontent.com/zulisxs/AnimeGhost/refs/heads/main/Utils/SearhEnemies.lua"))()
+local EnemiesFunctions = loadstring(game:HttpGet("https://raw.githubusercontent.com/zulisxs/AnimeGhost/refs/heads/main/Utils/SearhEnemies.lua"))()
 
 local Window = Fluent:CreateWindow({
     Title = "zUlisxs Hub",
@@ -39,7 +39,7 @@ local selectenemiesDropdown = AutoFarmSection:AddDropdown("selectenemiesDropdown
 AutoFarmSection:AddButton({
     Title = "Reset enemies", Icon = "sparkles",
     Callback = function()
-        selectenemiesDropdown:SetValues(searchEnemies())
+        selectenemiesDropdown:SetValues(EnemiesFunctions.searchEnemies())
     end
 })
 
