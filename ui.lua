@@ -28,7 +28,7 @@ local AutoFarmSection = Tabs.Farm:AddSection("Auto Farm")
 local selectenemiesDropdown = AutoFarmSection:AddDropdown("selectenemiesDropdown", {
     Title = "select enemies", Description = "Select option",
     Values = { "" },
-    Default = "",
+    Default = {""},
     Multi = true,
     Search = true, Icon = "list",
     Callback = function(Value)
@@ -91,7 +91,23 @@ local AutoFarmToggle = AutoFarmSection:AddToggle("AutoFarmToggle", {
     Title = "Auto Farm",
     Default = false, Icon = "toggle-right",
     Callback = function(Value)
-        print("Auto Farm changed:", Value)
+        if Value then
+            local selectedNames = nil
+            local selected = Options.selectenemiesDropdown.Value
+            if selected and selected ~= "" then
+                selectedNames = { [selected] = true }
+            end
+
+            EnemiesFunctions.startAutoFarm({
+                selectedNames = selectedNames,
+                priority      = Options.PrioridadDropdown.Value,
+                method        = Options.FarmMethodDropdown.Value,
+                tweenSpeed    = Options.TweenSpeedSlider.Value,
+                tpSpeed       = Options.TpspeedSlider.Value,
+            })
+        else
+            EnemiesFunctions.stopAutoFarm()
+        end
     end
 })
 
