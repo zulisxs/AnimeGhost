@@ -91,23 +91,7 @@ local AutoFarmToggle = AutoFarmSection:AddToggle("AutoFarmToggle", {
     Title = "Auto Farm",
     Default = false, Icon = "toggle-right",
     Callback = function(Value)
-        if Value then
-            local selectedNames = nil
-            local selected = Options.selectenemiesDropdown.Value
-            if selected and selected ~= "" then
-                selectedNames = { [selected] = true }
-            end
-
-            EnemiesFunctions.startAutoFarm({
-                selectedNames = selectedNames,
-                priority      = Options.PrioridadDropdown.Value,
-                method        = Options.FarmMethodDropdown.Value,
-                tweenSpeed    = Options.TweenSpeedSlider.Value,
-                tpSpeed       = Options.TpspeedSlider.Value,
-            })
-        else
-            EnemiesFunctions.stopAutoFarm()
-        end
+        print("Auto Farm changed:", Value)
     end
 })
 
