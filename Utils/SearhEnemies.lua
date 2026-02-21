@@ -122,9 +122,11 @@ end
 local function moveByTP(targetPosition)
     local player = game.Players.LocalPlayer.Character
     if not player then return end
+    local humanoid = player:FindFirstChildOfClass("Humanoid")
     local hrp = player:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
+    if not humanoid or not hrp then return end
     hrp.CFrame = CFrame.new(targetPosition + Vector3.new(0, 3, 0))
+    humanoid:MoveTo(targetPosition)
 end
 
 local function moveByTween(targetPosition, speed, onComplete)
@@ -163,15 +165,20 @@ local function stopAutoFarm()
     end
 end
 
-local function startAutoFarm(options)
-    -- options = {
-    --   selectedNames = { ["Goblin"] = true, ... },  -- nil = todos
-    --   priority = "High Hp" / "Low Hp" / "Near",
-    --   method = "Tween" / "Tp",
-    --   tweenSpeed = 50,
-    --   tpSpeed = 50,
-    -- }
+local function waitForEnemyDeath(enemy, timeout)
+    timeout = timeout or 30 -- maximo 30 segundos esperando
+    local elapsed = 0
+    while elapsed < timeout do
+        if not isEnemyAlive(enemy) then
+            return true -- murio
+        end
+        task.wait(0.1)
+        elapsed = elapsed + 0.1
+    end
+    return false -- timeout, asumir muerto o skip
+end
 
+local function startAutoFarm(options)
     if autoFarmRunning then return end
     autoFarmRunning = true
 
@@ -184,47 +191,50 @@ local function startAutoFarm(options)
             else
                 for _, enemy in ipairs(enemies) do
                     if not autoFarmRunning then break end
-
-                    -- Verificar que sigue vivo antes de moverse
                     if not isEnemyAlive(enemy) then continue end
 
                     local pos = getEnemyPosition(enemy)
                     if not pos then continue end
 
                     if options.method == "Tp" then
-                        -- Tp directo, velocidad = delay entre tps (speed 100 = sin delay)
-                        moveByTP(pos)
-                        local delay = 1 - (options.tpSpeed / 100)
-                        task.wait(math.max(delay, 0.05))
+                        -- Loop de TP: sigue teletransportandose al enemigo hasta que muera
+                        while autoFarmRunning and isEnemyAlive(enemy) do
+                            local currentPos = getEnemyPosition(enemy)
+                            if not currentPos then break end
+                            moveByTP(currentPos)
+                            local delay = 1 - (options.tpSpeed / 100)
+                            task.wait(math.max(delay, 0.05))
+                        end
 
                     elseif options.method == "Tween" then
-                        -- Tween, esperar a que llegue o muera el enemigo
-                        local arrived = false
-                        currentTween = moveByTween(pos, options.tweenSpeed, function()
-                            arrived = true
-                        end)
+                        -- Loop de Tween: sigue al enemigo con tween hasta que muera
+                        while autoFarmRunning and isEnemyAlive(enemy) do
+                            local currentPos = getEnemyPosition(enemy)
+                            if not currentPos then break end
 
-                        -- Esperar a que llegue o el enemigo muera
-                        while not arrived and autoFarmRunning do
-                            if not isEnemyAlive(enemy) then
-                                if currentTween then currentTween:Cancel() end
-                                break
+                            local arrived = false
+                            currentTween = moveByTween(currentPos, options.tweenSpeed, function()
+                                arrived = true
+                            end)
+
+                            -- Esperar llegada o muerte
+                            while not arrived and autoFarmRunning do
+                                if not isEnemyAlive(enemy) then
+                                    if currentTween then currentTween:Cancel() end
+                                    break
+                                end
+                                task.wait(0.1)
                             end
-                            -- Si el enemigo se movio, actualizar destino
-                            local newPos = getEnemyPosition(enemy)
-                            if newPos and (newPos - pos).Magnitude > 5 then
-                                pos = newPos
-                                if currentTween then currentTween:Cancel() end
-                                currentTween = moveByTween(pos, options.tweenSpeed, function()
-                                    arrived = true
-                                end)
+                            currentTween = nil
+
+                            if isEnemyAlive(enemy) then
+                                task.wait(0.1)
                             end
-                            task.wait(0.1)
                         end
-                        currentTween = nil
                     end
 
-                    task.wait(0.1)
+                    print("Enemy killed, moving to next...")
+                    task.wait(0.2)
                 end
             end
 
