@@ -44,13 +44,46 @@ AutoFarmSection:AddButton({
 })
 
 local PrioridadDropdown = AutoFarmSection:AddDropdown("PrioridadDropdown", {
-    Title = "priority",
+    Title = "Prioridad",
     Values = { "Low hp", "High Hp", "Near" },
     Default = "High Hp",
     Multi = false,
     Search = true, Icon = "list",
     Callback = function(Value)
         print("Prioridad changed:", Value)
+    end
+})
+
+local FarmMethodDropdown = AutoFarmSection:AddDropdown("FarmMethodDropdown", {
+    Title = "Farm Method",
+    Values = { "Tween", "Tp" },
+    Default = "Tween",
+    Multi = false,
+    Search = true, Icon = "list",
+    Callback = function(Value)
+        print("Farm Method changed:", Value)
+    end
+})
+
+local TweenSpeedSlider = AutoFarmSection:AddSlider("TweenSpeedSlider", {
+    Title = "Tween Speed",
+    Default = 50,
+    Min = 0,
+    Max = 100,
+    Rounding = 1, Icon = "slider",
+    Callback = function(Value)
+        print("Tween Speed changed:", Value)
+    end
+})
+
+local TpspeedSlider = AutoFarmSection:AddSlider("TpspeedSlider", {
+    Title = "Tp speed",
+    Default = 50,
+    Min = 0,
+    Max = 100,
+    Rounding = 1, Icon = "slider",
+    Callback = function(Value)
+        print("Tp speed changed:", Value)
     end
 })
 
