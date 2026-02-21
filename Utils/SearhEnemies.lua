@@ -122,10 +122,11 @@ end
 local function moveByTP(targetPosition)
     local player = game.Players.LocalPlayer.Character
     if not player then return end
+    local humanoid = player:FindFirstChildOfClass("Humanoid")
     local hrp = player:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    -- Disable physics briefly
+    if not humanoid or not hrp then return end
     hrp.CFrame = CFrame.new(targetPosition + Vector3.new(0, 3, 0))
+    humanoid:MoveTo(targetPosition)
 end
 
 local function moveByTween(targetPosition, speed, onComplete)
