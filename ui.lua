@@ -27,7 +27,7 @@ local AutoFarmSection = Tabs.Farm:AddSection("Auto Farm")
 local selectenemiesDropdown = AutoFarmSection:AddDropdown("selectenemiesDropdown", {
     Title = "select enemies", Description = "Select option",
     Values = { "" },
-    Default = "Option 1",
+    Default = "",
     Multi = false,
     Search = true, Icon = "list",
     Callback = function(Value)
