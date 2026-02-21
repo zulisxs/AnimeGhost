@@ -235,7 +235,8 @@ local function startAutoFarm(options)
 
                     -- Moverse al enemigo UNA sola vez
                     if options.method == "Tp" then
-                        moveByTP(pos)
+                    moveByTP(pos, options.tpSpeed)
+
 
                     elseif options.method == "Tween" then
                         local arrived = false
